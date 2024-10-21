@@ -1,0 +1,65 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'orders/**'
+      - 'tickets/**'
+      - 'auth/**'
+      - 'skaffold.yaml'
+      - '.github/workflows/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Install dependencies for Orders
+        if: contains(github.event.head_commit.message, 'orders/')
+        run: cd orders && npm install
+      
+      - name: Install dependencies for Tickets
+        if: contains(github.event.head_commit.message, 'tickets/')
+        run: cd tickets && npm install
+      
+      - name: Install dependencies for Auth
+        if: contains(github.event.head_commit.message, 'auth/')
+        run: cd auth && npm install
+      
+      - name: Run Tests for Orders
+        if: contains(github.event.head_commit.message, 'orders/')
+        run: cd orders && npm run test:ci
+      
+      - name: Run Tests for Tickets
+        if: contains(github.event.head_commit.message, 'tickets/')
+        run: cd tickets && npm run test:ci
+      
+      - name: Run Tests for Auth
+        if: contains(github.event.head_commit.message, 'auth/')
+        run: cd auth && npm run test:ci
+
+  deploy:
+    runs-on: self-hosted  
+    needs: build  
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Skaffold
+        run: |
+          skaffold version
+
+      - name: Deploy to Local Kubernetes with Skaffold
+        run: skaffold run
