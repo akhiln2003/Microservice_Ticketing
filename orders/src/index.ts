@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { app } from './app';
 import { natsWrapper } from './nats-wrapper';
-import { OrderCancelledListener } from './events/listener/order-cancelled-listener';
-import { OrderCreatedListener } from './events/listener/order-created-listener';
+import { TicketCreatedListener } from './events/listener/ticket-created-listener';
+import { TicketUpdatedListener } from './events/listener/ticket-updated-listener';
 // import morgan from 'morgan';
 
 
@@ -38,9 +38,10 @@ const start = async () => {
     });
     process.on('SIGINT', () => natsWrapper.client.close());
     process.on('SIGTERM', () => natsWrapper.client.close());
-    new OrderCancelledListener(natsWrapper.client).listen();
-    new OrderCreatedListener(natsWrapper.client).listen();
 
+    new TicketCreatedListener(natsWrapper.client).listen();
+    new TicketUpdatedListener(natsWrapper.client).listen();
+    
     await mongoose.connect(process.env.MONGO_URI)
     console.log("Connected to mongoDB");
 
@@ -48,7 +49,7 @@ const start = async () => {
     console.log(" error form connecting ", err);
 
   }
-  app.listen(3003, () => console.log("Listening on port 3001!!!!"));
+  app.listen(3005, () => console.log("Listening on port 3001!!!!"));
 
 }
 
