@@ -15,7 +15,6 @@ router.post('/api/tickets', requireAuth, async (req: Request, res: Response) => 
    });
    await ticket.save();
 
-   try {
       await new TicketCreatedPublisher(natsWrapper.client).publish({
          id: ticket.id,
          title: ticket.title,
@@ -24,9 +23,7 @@ router.post('/api/tickets', requireAuth, async (req: Request, res: Response) => 
          version: ticket.version
       });
       res.status(201).send(ticket)
-   } catch (err) {
-      throw new Error("")
-   }
+  
   
 });
 
